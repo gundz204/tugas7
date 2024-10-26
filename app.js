@@ -55,29 +55,31 @@ app.extSorter = () => {
 };
 
 app.readFolder = () => {
-    rl.question("Masukan Nama Folder: ", (folderName) => {
+  rl.question("Masukan Nama Folder: ", (folderName) => {
       const folderPath = __dirname + `/${folderName}`;
       fs.readdir(folderPath, (err, files) => {
-        if (err) throw err;
-  
-        const fileInfo = files.map((file) => {
-          const stats = fs.statSync(folderPath + `/${file}`);
-          return {
-            namaFile: file,
-            extensi: file.split(".").pop(),
-            jenisFile: file.split(".").pop() === "jpg" || file.split(".").pop() === "png" ? "gambar" : "text",
-            tanggalDibuat: stats.birthtime.toLocaleDateString(),
-            ukuranFile: `${(stats.size / 1024).toFixed(2)} kb`,
-          };
-        });
-  
-        fileInfo.sort((a, b) => b.tanggalDibuat - a.tanggalDibuat);
-  
-        console.log(JSON.stringify(fileInfo, null, 2));
-        rl.close();
+          if (err) throw err;
+
+          const fileInfo = files.map((file) => {
+              const stats = fs.statSync(folderPath + `/${file}`);
+              const fileSize = (stats.size / 1024).toFixed(2);
+              return {
+                  namaFile: file,
+                  extensi: file.split(".").pop(),
+                  jenisFile: ["jpg", "png"].includes(file.split(".").pop()) ? "gambar" : "text",
+                  tanggalDibuat: stats.birthtime.toISOString().split("T")[0],  // Format as YYYY-MM-DD
+                  ukuranFile: fileSize >= 1024 ? `${(fileSize / 1024).toFixed(2)} mb` : `${fileSize} kb`,
+              };
+          });
+
+          fileInfo.sort((a, b) => new Date(b.tanggalDibuat) - new Date(a.tanggalDibuat));
+
+          console.log(`Berhasil menampilkan isi dari folder ${folderName}:`);
+          console.log(JSON.stringify(fileInfo, null, 2));
+          rl.close();
       });
-    });
-  };
+  });
+};
   
 
 app.readFile = () => {
